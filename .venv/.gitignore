@@ -1,1 +1,0 @@
-echo -e "__pycache__/\n*.pyc\n.env\ndb_data/\nvenv/\n.idea/" > .gitignore
