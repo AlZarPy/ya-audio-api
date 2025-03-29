@@ -1,7 +1,19 @@
+# IDE и редакторы
 .idea/
+.vscode/
+
+# Виртуальное окружение
+/.venv/
+/venv/
+
+# Кэш Python
 __pycache__/
 *.pyc
-*.log
+
+# Файлы окружения
 .env
+
+# Данные БД
 db_data/
-.venv/
+*.sqlite3
+*.db

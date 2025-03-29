@@ -1,15 +1,16 @@
-from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from app.models import Base
 
-# Подключение к базе данных
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://user:password@localhost/ya_audio_api")
+DATABASE_URL = "postgresql+asyncpg://postgres:1@localhost/ya_audio_api"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
 
-# Создаем сессию
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Базовый класс для всех моделей
 Base = declarative_base()
+
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
