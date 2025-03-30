@@ -59,5 +59,4 @@ async def auth_yandex_callback(code: str):
     if response.status_code == 200:
         data = response.json()
         return {"access_token": data.get("access_token")}
-
     raise HTTPException(status_code=400, detail="Failed to get token")

@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models import User
+from app.token import create_access_token, verify_access_token
 import os
 from dotenv import load_dotenv
 
@@ -31,23 +32,36 @@ async def get_yandex_user_info(token: str):
 
 
 async def create_user_from_yandex(token: str, db: AsyncSession):
-    """
-    Создание пользователя в базе данных по данным из Yandex.
-    """
     user_info = await get_yandex_user_info(token)
 
-    stmt = select(User).where(User.email == user_info.get("email"))
+    stmt = select(User).where(User.username == user_info['login'])
     result = await db.execute(stmt)
-    db_user = result.scalars().first()
+    existing_user = result.scalars().first()
 
-    if not db_user:
-        db_user = User(
-            username=user_info.get("login", "unknown"),
-            email=user_info.get("email", "unknown@noemail.com"),
-            yandex_token=token
-        )
-        db.add(db_user)
-        await db.commit()
-        await db.refresh(db_user)
+    if existing_user:
+        # Пользователь с таким username уже существует
+        return existing_user
+
+    # Создаем нового пользователя, если его еще нет
+    db_user = User(
+        username=user_info['login'],
+        email=user_info["default_email"],
+        yandex_token=token
+    )
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
 
     return db_user
+
+async def get_user_by_token(token: str | None, db: AsyncSession) -> User:
+    if token is None:
+        raise HTTPException(status_code=401, detail="Token not found")
+    payload = verify_access_token(token)
+    user = db.query(User).filter(User.id == payload["sub"]).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    # Дополнительно проверяем активность пользователя
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="Inactive user")
+    return user
