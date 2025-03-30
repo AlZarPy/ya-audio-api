@@ -7,6 +7,14 @@ from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
 from dotenv import load_dotenv
 from app.database import Base, engine
+from app.routers import users, files
+
+# Инициализация FastAPI
+app = FastAPI()
+templates = Jinja2Templates(directory="app/templates")
+
+app.include_router(users.router)
+app.include_router(files.router)
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -16,9 +24,7 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 
-# Инициализация FastAPI
-app = FastAPI()
-templates = Jinja2Templates(directory="app/templates")
+
 
 # Асинхронная инициализация БД
 async def init_db():
@@ -51,7 +57,7 @@ async def auth_yandex_callback(code: str):
         })
 
     if response.status_code == 200:
-        data = await response.json()  # Добавили await
+        data = response.json()
         return {"access_token": data.get("access_token")}
 
     raise HTTPException(status_code=400, detail="Failed to get token")

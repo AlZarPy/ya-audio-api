@@ -1,7 +1,10 @@
-fastapi
+fastapi~=0.115.12
 uvicorn
-sqlalchemy
+sqlalchemy~=2.0.40
 psycopg2
-pydantic
-httpx
-python-dotenv
+pydantic~=2.11.0
+httpx~=0.28.1
+python-dotenv~=1.1.0
+
+PyJWT~=2.10.1
+alembic~=1.15.2
